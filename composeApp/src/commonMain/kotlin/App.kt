@@ -1,22 +1,28 @@
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material.Button
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
-
-import churchmanager.composeapp.generated.resources.Res
-import churchmanager.composeapp.generated.resources.compose_multiplatform
+import pages.CoursesPage
 import pages.HomePage
+import pages.PeoplesPage
+import ui.theme.MyApplicationTheme
+
+sealed class Screen {
+    data object Home : Screen()
+    data object Courses : Screen()
+    data object Peoples : Screen()
+}
 
 @Composable
 @Preview
 fun App() {
-    HomePage()
+    MyApplicationTheme {
+        var currentScreen by remember { mutableStateOf<Screen>(Screen.Home) }
+        when (currentScreen) {
+            is Screen.Home -> HomePage(
+                navigateToCourses = { currentScreen = Screen.Courses },
+                navigateToPeoples = { currentScreen = Screen.Peoples })
+
+            is Screen.Courses -> CoursesPage()
+            is Screen.Peoples -> PeoplesPage()
+        }
+    }
 }

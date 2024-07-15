@@ -3,23 +3,26 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Text
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
+import models.Pessoa
 
 @Composable
-fun PequenosGruposPage() {
+fun PeoplesPage() {
     val scope = rememberCoroutineScope()
-    val pequenosGrupos = remember { mutableStateListOf<PequenoGrupo>() }
+    val pessoas = remember { mutableStateListOf<Pessoa>() }
 
     scope.launch {
-        val result = PequenoGrupoService.getPequenosGrupos()
-        pequenosGrupos.addAll(result)
+        val result = PessoaService.getPessoas()
+        pessoas.addAll(result)
     }
 
     LazyColumn {
-        items(pequenosGrupos) { pequenoGrupo ->
-            Text(pequenoGrupo.nome)
+        items(pessoas) { pessoa ->
+            Text(pessoa.nome)
         }
     }
 }
+

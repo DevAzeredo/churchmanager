@@ -1,32 +1,28 @@
-import io.ktor.client.*
+import io.ktor.client.call.body
 import io.ktor.client.request.*
-import io.ktor.client.features.json.*
-import io.ktor.client.features.json.serializer.*
+import models.PequenoGrupo
+import network.HttpClientSingleton
 
 object PequenoGrupoService {
-    private val client = HttpClient {
-        install(JsonFeature) {
-            serializer = KotlinxSerializer()
-        }
-    }
+    private val client = HttpClientSingleton.instance
 
     suspend fun getPequenosGrupos(): List<PequenoGrupo> {
-        return client.get("https://api.suaigreja.com/pequenosgrupos")
+        return client.get("https://api.suaigreja.com/pequenosgrupos").body()
     }
 
     suspend fun createPequenoGrupo(pequenoGrupo: PequenoGrupo): PequenoGrupo {
         return client.post("https://api.suaigreja.com/pequenosgrupos") {
-            body = pequenoGrupo
-        }
+            setBody(pequenoGrupo)
+        }.body()
     }
 
     suspend fun updatePequenoGrupo(id: Int, pequenoGrupo: PequenoGrupo): PequenoGrupo {
         return client.put("https://api.suaigreja.com/pequenosgrupos/$id") {
-            body = pequenoGrupo
-        }
+            setBody(pequenoGrupo)
+        }.body()
     }
 
     suspend fun deletePequenoGrupo(id: Int) {
-        client.delete<Unit>("https://api.suaigreja.com/pequenosgrupos/$id")
+        client.delete("https://api.suaigreja.com/pequenosgrupos/$id")
     }
 }

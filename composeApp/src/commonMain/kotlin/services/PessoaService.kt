@@ -1,32 +1,34 @@
-import io.ktor.client.*
-import io.ktor.client.request.*
-import io.ktor.client.features.json.*
-import io.ktor.client.features.json.serializer.*
+import io.ktor.client.call.body
+import io.ktor.client.request.delete
+import io.ktor.client.request.get
+import io.ktor.client.request.post
+import io.ktor.client.request.put
+import io.ktor.client.request.setBody
+import models.Pessoa
+import network.HttpClientSingleton
 
 object PessoaService {
-    private val client = HttpClient {
-        install(JsonFeature) {
-            serializer = KotlinxSerializer()
-        }
-    }
+    private val client = HttpClientSingleton.instance
+
 
     suspend fun getPessoas(): List<Pessoa> {
-        return client.get("https://api.suaigreja.com/pessoas")
+        return client.get("https://api.suaigreja.com/pessoas").body()
     }
 
     suspend fun createPessoa(pessoa: Pessoa): Pessoa {
-        return client.post("https://api.suaigreja.com/pessoas") {
-            body = pessoa
+        client.post("https://api.suaigreja.com/pessoas") {
+
         }
+        return pessoa
     }
 
     suspend fun updatePessoa(id: Int, pessoa: Pessoa): Pessoa {
         return client.put("https://api.suaigreja.com/pessoas/$id") {
-            body = pessoa
-        }
+            setBody(pessoa)
+        }.body()
     }
 
     suspend fun deletePessoa(id: Int) {
-        client.delete<Unit>("https://api.suaigreja.com/pessoas/$id")
+        client.delete("https://api.suaigreja.com/pessoas/$id")
     }
 }
