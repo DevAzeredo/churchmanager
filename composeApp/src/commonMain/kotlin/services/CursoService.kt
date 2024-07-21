@@ -1,8 +1,9 @@
 package services
 
-import io.ktor.client.*
 import io.ktor.client.call.body
-import io.ktor.client.request.*
+import io.ktor.client.request.delete
+import io.ktor.client.request.put
+import io.ktor.client.request.setBody
 import models.Curso
 import network.ApiConfig
 import network.HttpClientSingleton

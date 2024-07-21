@@ -6,39 +6,39 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
-import kotlinx.coroutines.launch
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Button
 import androidx.compose.material.Card
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
-import androidx.compose.material.TopAppBar
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Menu
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
+import components.NavigationButton
+import kotlinx.coroutines.launch
 import models.Curso
 import services.CursoService
 import ui.theme.Typography
 
 @Composable
-fun CoursesPage() {
+fun CoursesPage(
+    navController: NavHostController
+) {
     val scope = rememberCoroutineScope()
     val cursos = remember { mutableStateListOf<Curso>() }
-    var novoCursoNome by remember { mutableStateOf("") }
+    var novoNome by remember { mutableStateOf("") }
+    var novaDescricao by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
         val result = CursoService.getCursos()
@@ -46,14 +46,7 @@ fun CoursesPage() {
     }
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Cursos") },
-                navigationIcon = {
-                    IconButton(onClick = { /* Handle navigation icon press */ }) {
-                        Icon(Icons.Default.Menu, contentDescription = "Menu")
-                    }
-                }
-            )
+            NavigationButton("Cursos", navController)
         },
         content = {
             Surface(
@@ -66,16 +59,15 @@ fun CoursesPage() {
                 ) {
                     // Form to add a new course
                     OutlinedTextField(
-                        value = novoCursoNome,
-                        onValueChange = { novoCursoNome = it },
+                        value = novoNome,
+                        onValueChange = { novoNome = it },
                         label = { Text("Nome") },
                         modifier = Modifier.fillMaxWidth()
                     )
                     Spacer(modifier = Modifier.height(8.dp))
-                    var novoCursoDescricao = ""
                     OutlinedTextField(
-                        value = novoCursoDescricao,
-                        onValueChange = { novoCursoDescricao = it },
+                        value = novaDescricao,
+                        onValueChange = { novaDescricao = it },
                         label = { Text("Descricao ") },
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -84,17 +76,17 @@ fun CoursesPage() {
                         onClick = {
                             val novoCurso = Curso(
                                 0,
-                                novoCursoNome,
-                                novoCursoDescricao,
+                                novoNome,
+                                novaDescricao,
                                 "2023-12-18"
                             ) // Replace with actual date
                             scope.launch {
                                 CursoService.createCurso(novoCurso)
-                                if (novoCurso.id > 0) {
+
                                     cursos.add(novoCurso)
-                                    novoCursoNome = ""
-                                    novoCursoDescricao = ""
-                                }
+                                    novoNome = ""
+                                    novaDescricao = ""
+
                             }
                         },
                         modifier = Modifier.fillMaxWidth()
@@ -113,15 +105,15 @@ fun CoursesPage() {
                             ) {
                                 Column(modifier = Modifier.padding(16.dp)) {
                                     Text(
-                                        text = "Nome: ${curso.nome}",
+                                        text = curso.nome,
                                         style = Typography.body1
                                     )
                                     Text(
-                                        text = "Descrição: ${curso.descricao}",
+                                        text = curso.descricao,
                                         style = Typography.body2
                                     )
                                     Text(
-                                        text = "Criado em: ${curso.data}",
+                                        text = curso.data,
                                         style = Typography.caption
                                     )
                                 }
