@@ -13,11 +13,15 @@ object PessoaService {
 
     suspend fun getPessoas(): Result<List<Pessoa>> {
         return runCatching {
-            val response = client.get("https://api.suaigreja.com/pessoas")
-            if (response.status == HttpStatusCode.OK) {
-                response.body()
-            } else {
-                throw Exception("Failed to fetch pessoas: ${response.status}")
+            try {
+                val response = client.get("https://api.suaigreja.com/pessoas")
+                if (response.status == HttpStatusCode.OK) {
+                    response.body()
+                } else {
+                    throw Exception("Failed to fetch pessoas: ${response.status}")
+                }
+            } catch (e: Exception) {
+                throw Exception("Failed to fetch pessoas: ${e.message}")
             }
         }
     }
