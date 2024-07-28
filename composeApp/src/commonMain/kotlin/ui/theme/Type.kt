@@ -1,76 +1,52 @@
 package ui.theme
 
-import androidx.compose.material.Typography
+import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
+import androidx.compose.ui.text.googlefonts.GoogleFont
+import androidx.compose.ui.text.googlefonts.Font
 
-val Typography = Typography(
-    h1 = TextStyle(
-        fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Bold,
-        fontSize = 30.sp
-    ),
-    h2 = TextStyle(
-        fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Bold,
-        fontSize = 24.sp
-    ),
-    h3 = TextStyle(
-        fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Bold,
-        fontSize = 20.sp
-    ),
-    h4 = TextStyle(
-        fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Bold,
-        fontSize = 18.sp
-    ),
-    h5 = TextStyle(
-        fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Bold,
-        fontSize = 16.sp
-    ),
-    h6 = TextStyle(
-        fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Bold,
-        fontSize = 14.sp
-    ),
-    subtitle1 = TextStyle(
-        fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Medium,
-        fontSize = 16.sp
-    ),
-    subtitle2 = TextStyle(
-        fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Medium,
-        fontSize = 14.sp
-    ),
-    body1 = TextStyle(
-        fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Normal,
-        fontSize = 16.sp
-    ),
-    body2 = TextStyle(
-        fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Normal,
-        fontSize = 14.sp
-    ),
-    button = TextStyle(
-        fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Bold,
-        fontSize = 14.sp
-    ),
-    caption = TextStyle(
-        fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Normal,
-        fontSize = 12.sp
-    ),
-    overline = TextStyle(
-        fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Normal,
-        fontSize = 10.sp
+val provider = GoogleFont.Provider(
+    providerAuthority = "com.google.android.gms.fonts",
+    providerPackage = "com.google.android.gms",
+    certificates = R.array.com_google_android_gms_fonts_certs
+)
+
+val bodyFontFamily = FontFamily(
+    Font(
+        googleFont = GoogleFont("Gothic A1"),
+        fontProvider = provider,
     )
 )
+
+val displayFontFamily = FontFamily(
+    Font(
+        googleFont = GoogleFont("Gothic A1"),
+        fontProvider = provider,
+    )
+)
+
+// Default Material 3 typography values
+val baseline = Typography()
+
+val AppTypography = Typography(
+    displayLarge = baseline.displayLarge.copy(fontFamily = displayFontFamily),
+    displayMedium = baseline.displayMedium.copy(fontFamily = displayFontFamily),
+    displaySmall = baseline.displaySmall.copy(fontFamily = displayFontFamily),
+    headlineLarge = baseline.headlineLarge.copy(fontFamily = displayFontFamily),
+    headlineMedium = baseline.headlineMedium.copy(fontFamily = displayFontFamily),
+    headlineSmall = baseline.headlineSmall.copy(fontFamily = displayFontFamily),
+    titleLarge = baseline.titleLarge.copy(fontFamily = displayFontFamily),
+    titleMedium = baseline.titleMedium.copy(fontFamily = displayFontFamily),
+    titleSmall = baseline.titleSmall.copy(fontFamily = displayFontFamily),
+    bodyLarge = baseline.bodyLarge.copy(fontFamily = bodyFontFamily),
+    bodyMedium = baseline.bodyMedium.copy(fontFamily = bodyFontFamily),
+    bodySmall = baseline.bodySmall.copy(fontFamily = bodyFontFamily),
+    labelLarge = baseline.labelLarge.copy(fontFamily = bodyFontFamily),
+    labelMedium = baseline.labelMedium.copy(fontFamily = bodyFontFamily),
+    labelSmall = baseline.labelSmall.copy(fontFamily = bodyFontFamily),
+)
+

@@ -2,55 +2,59 @@ package services
 
 import io.ktor.client.call.body
 import io.ktor.client.request.delete
+import io.ktor.client.request.get
+import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
+import io.ktor.http.HttpStatusCode
 import models.Curso
 import network.ApiConfig
 import network.HttpClientSingleton
 
 object CursoService {
     private val client = HttpClientSingleton.instance
-    const val url =
+    private const val cURL =
         ApiConfig.Endpoints.CURSOS
 
-    suspend fun getCursos(): List<Curso> {
-//        return client.get("https://api.suaigreja.com/cursos").body()
-        return listOf(
-            Curso(
-                id = 1,
-                nome = "Curso de Teologia",
-                descricao = "Um curso abrangente sobre teologia.",
-                data = "1998"
-            ),
-            Curso(
-                id = 2,
-                nome = "Curso de Música",
-                descricao = "Aprenda a tocar e cantar músicas religiosas.",
-                data = "1998"
-            ),
-            Curso(
-                id = 3,
-                nome = "Curso de Liderança",
-                descricao = "Desenvolva habilidades de liderança para a comunidade.",
-                data = "1998"
-            )
-        )
+    suspend fun getCursos(): Result<List<Curso>> {
+        return runCatching {
+            try {
+                val response = client.get(cURL)
+                if (response.status == HttpStatusCode.OK) {
+                    response.body<List<Curso>>()
+                } else {
+                    throw Exception("Failed to fetch cursos: ${response.status}")
+                }
+            } catch (e: Exception) {
+                throw Exception("Failed to fetch cursos: ${e.message}")
+            }
+        }
     }
 
-    suspend fun createCurso(curso: Curso): Curso {
-        return curso
-//        client.post(url) {
-//            setBody(curso)
-//        }.body()
+    suspend fun createCurso(curso: Curso): Result<Curso> {
+        return runCatching {
+            try {
+                val response = client.post(cURL) {
+                    setBody(curso)
+                }
+                if (response.status == HttpStatusCode.OK) {
+                    response.body<Curso>()
+                } else {
+                    throw Exception("Failed to create cursos: ${response.status}")
+                }
+            } catch (e: Exception) {
+                throw Exception("Failed to create cursos: ${e.message}")
+            }
+        }
     }
 
     suspend fun updateCurso(id: Int, curso: Curso): Curso {
-        return client.put("$url/$id") {
+        return client.put("$cURL/$id") {
             setBody(curso)
         }.body()
     }
 
     suspend fun deleteCurso(id: Int) {
-        client.delete("$url/$id")
+        client.delete("$cURL/$id")
     }
 }

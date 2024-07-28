@@ -3,27 +3,20 @@ package pages
 import PessoaService
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.Button
-import androidx.compose.material.Card
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -32,16 +25,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import components.NavigationButton
+import components.NotificationCard
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import models.Pessoa
-import ui.theme.Typography
 
 @Composable
 fun PeoplesPage(navController: NavHostController) {
@@ -122,70 +114,20 @@ fun PessoaList(navController: NavHostController, pessoas: List<Pessoa>) {
                     }
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text(text = pessoa.nome, style = Typography.body1)
-                    Text(text = "Tel/Cel: ${pessoa.telefone}", style = Typography.body2)
-                    Text(text = "Email: ${pessoa.email}", style = Typography.body2)
-                    Text(text = "Profissão: ${pessoa.profissao}", style = Typography.body2)
-                    Text(text = "Endereço: ${pessoa.endereco}", style = Typography.body2)
+                    Text(text = pessoa.nome, style = MaterialTheme.typography.bodyMedium)
+                    Text(text = "Tel/Cel: ${pessoa.telefone}", style = MaterialTheme.typography.bodyMedium)
+                    Text(text = "Email: ${pessoa.email}", style = MaterialTheme.typography.bodyMedium)
+                    Text(text = "Profissão: ${pessoa.profissao}", style = MaterialTheme.typography.bodyMedium)
+                    Text(text = "Endereço: ${pessoa.endereco}", style = MaterialTheme.typography.bodyMedium)
                     Text(
                         text = "Data de Nascimento: ${pessoa.dataNascimento}",
-                        style = Typography.body2
+                        style = MaterialTheme.typography.bodyMedium
                     )
                 }
             }
         }
     }
 }
-
-@Composable
-fun NotificationCard(errorMessage: String?, onDismiss: () -> Unit) {
-    Card(
-        modifier = Modifier
-            .padding(16.dp)
-            .fillMaxWidth(),
-        backgroundColor = MaterialTheme.colors.surface,
-        elevation = 8.dp
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.Notifications,
-                contentDescription = "Notification Icon",
-                tint = MaterialTheme.colors.error
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Column {
-                Text(
-                    text = "Erro",
-                    style = MaterialTheme.typography.h6,
-                    color = MaterialTheme.colors.error
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = errorMessage ?: "Unknown error",
-                    style = MaterialTheme.typography.body2
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "Se o erro persistir, entre em contato com o suporte técnico.",
-                    style = MaterialTheme.typography.body2
-                )
-            }
-            Spacer(modifier = Modifier.weight(1f))
-            IconButton(onClick = onDismiss) {
-                Icon(
-                    imageVector = Icons.Default.Close,
-                    contentDescription = "Close Notification"
-                )
-            }
-        }
-    }
-}
-
 
 @Composable
 fun AddPessoaForm(onAddPessoa: (Pessoa) -> Unit) {
@@ -196,6 +138,7 @@ fun AddPessoaForm(onAddPessoa: (Pessoa) -> Unit) {
     var novoEmail by remember { mutableStateOf("") }
     var novoDataNascimento by remember { mutableStateOf("") }
     Column {
+
         OutlinedTextField(
             value = novoNome,
             onValueChange = { novoNome = it },
@@ -276,27 +219,27 @@ fun PessoaList(pessoas: List<Pessoa>) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = pessoa.nome,
-                        style = Typography.body1
+                        style = MaterialTheme.typography.bodyLarge
                     )
                     Text(
                         text = "Tel/Cel: ${pessoa.telefone}",
-                        style = Typography.body2
+                        style = MaterialTheme.typography.bodyMedium
                     )
                     Text(
                         text = "Email: ${pessoa.email}",
-                        style = Typography.body2
+                        style = MaterialTheme.typography.bodyMedium
                     )
                     Text(
                         text = "Profissao: ${pessoa.profissao}",
-                        style = Typography.body2
+                        style = MaterialTheme.typography.bodyMedium
                     )
                     Text(
                         text = "Endereco: ${pessoa.endereco}",
-                        style = Typography.body2
+                        style = MaterialTheme.typography.bodyMedium
                     )
                     Text(
                         text = "Data Nascimento: ${pessoa.dataNascimento}",
-                        style = Typography.body2
+                        style = MaterialTheme.typography.bodyMedium
                     )
                 }
             }

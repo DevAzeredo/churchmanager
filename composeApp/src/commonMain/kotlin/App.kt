@@ -1,13 +1,14 @@
+
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.rememberNavController
 import org.jetbrains.compose.ui.tooling.preview.Preview
-import ui.theme.MyApplicationTheme
+import ui.theme.AppTheme
 
 
 @Composable
 @Preview
 fun App() {
-    MyApplicationTheme {
+    AppTheme {
         val navController = rememberNavController()
         AppNavigation(navController)
     }

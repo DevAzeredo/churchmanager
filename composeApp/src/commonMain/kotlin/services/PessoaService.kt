@@ -6,17 +6,21 @@ import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
 import models.Pessoa
+import network.ApiConfig
 import network.HttpClientSingleton
+
 
 object PessoaService {
     private val client = HttpClientSingleton.instance
+    const val url =
+        ApiConfig.Endpoints.PESSOAS
 
     suspend fun getPessoas(): Result<List<Pessoa>> {
         return runCatching {
             try {
-                val response = client.get("https://api.suaigreja.com/pessoas")
+                val response = client.get("$url")
                 if (response.status == HttpStatusCode.OK) {
-                    response.body()
+                    response.body<List<Pessoa>>()
                 } else {
                     throw Exception("Failed to fetch pessoas: ${response.status}")
                 }
