@@ -14,12 +14,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.navigation.NavHostController
+import ui.theme.primaryDarkHighContrast
 
 
 @Composable
 fun NavigationButton(title: String, navController: NavHostController) {
     var expanded by remember { mutableStateOf(false) }
     TopAppBar(
+        backgroundColor = primaryDarkHighContrast,
         title = { Text(title) },
         navigationIcon = {
             IconButton(onClick = { expanded = true }) {

@@ -2,12 +2,15 @@ package pages
 
 import PessoaService
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
@@ -43,6 +46,7 @@ fun PeoplesPage(navController: NavHostController) {
     var errorMessage by remember { mutableStateOf("") }
     var showNotification by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
+    var showForm by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         PessoaService.getPessoas()
@@ -67,12 +71,29 @@ fun PeoplesPage(navController: NavHostController) {
                         .fillMaxSize()
                         .padding(16.dp)
                 ) {
-                    AddPessoaForm { novaPessoa ->
-                        scope.launch {
-                            pessoas.add(novaPessoa)
-                            filteredPessoas.add(novaPessoa)
-                        }
+                    Spacer(modifier = Modifier.height(46.dp))
+                    Button(
+                        onClick = { showForm = !showForm },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(if (showForm) "Cancelar" else "Adicionar Pessoa")
                     }
+
+                    if (showForm) {
+                        AddPessoaForm(
+                            onAddPessoa = { novaPessoa ->
+                                scope.launch {
+                                    pessoas.add(novaPessoa)
+                                    filteredPessoas.add(novaPessoa)
+                                }
+                                showForm = false
+                            },
+                            onClearClick = {
+                                // Lógica para limpar os campos, se necessário
+                            }
+                        )
+                    }
+
                     Spacer(modifier = Modifier.height(16.dp))
                     OutlinedTextField(
                         value = searchQuery,
@@ -101,44 +122,16 @@ fun PeoplesPage(navController: NavHostController) {
 }
 
 @Composable
-fun PessoaList(navController: NavHostController, pessoas: List<Pessoa>) {
-    LazyColumn {
-        items(pessoas) { pessoa ->
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp)
-                    .clickable {
-                        val pessoaJson = Json.encodeToString(pessoa)
-                        navController.navigate("pessoaDetail/$pessoaJson")
-                    }
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(text = pessoa.nome, style = MaterialTheme.typography.bodyMedium)
-                    Text(text = "Tel/Cel: ${pessoa.telefone}", style = MaterialTheme.typography.bodyMedium)
-                    Text(text = "Email: ${pessoa.email}", style = MaterialTheme.typography.bodyMedium)
-                    Text(text = "Profissão: ${pessoa.profissao}", style = MaterialTheme.typography.bodyMedium)
-                    Text(text = "Endereço: ${pessoa.endereco}", style = MaterialTheme.typography.bodyMedium)
-                    Text(
-                        text = "Data de Nascimento: ${pessoa.dataNascimento}",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun AddPessoaForm(onAddPessoa: (Pessoa) -> Unit) {
+fun AddPessoaForm(onAddPessoa: (Pessoa) -> Unit, onClearClick: () -> Unit) {
     var novoNome by remember { mutableStateOf("") }
     var novoTelCel by remember { mutableStateOf("") }
     var novoEndereco by remember { mutableStateOf("") }
     var novoProfissao by remember { mutableStateOf("") }
     var novoEmail by remember { mutableStateOf("") }
     var novoDataNascimento by remember { mutableStateOf("") }
-    Column {
 
+    Column {
+        Spacer(modifier = Modifier.height(36.dp))
         OutlinedTextField(
             value = novoNome,
             onValueChange = { novoNome = it },
@@ -163,14 +156,14 @@ fun AddPessoaForm(onAddPessoa: (Pessoa) -> Unit) {
         OutlinedTextField(
             value = novoProfissao,
             onValueChange = { novoProfissao = it },
-            label = { Text("Profissao") },
+            label = { Text("Profissão") },
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(
             value = novoEndereco,
             onValueChange = { novoEndereco = it },
-            label = { Text("Endereco") },
+            label = { Text("Endereço") },
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(8.dp))
@@ -181,64 +174,65 @@ fun AddPessoaForm(onAddPessoa: (Pessoa) -> Unit) {
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(8.dp))
-        Button(
-            onClick = {
-                val novaPessoa = Pessoa(
-                    0,
-                    novoNome,
-                    novoDataNascimento,
-                    novoEndereco,
-                    novoTelCel,
-                    novoEmail,
-                    novoProfissao
-                )
-                onAddPessoa(novaPessoa)
-                novoNome = ""
-                novoDataNascimento = ""
-                novoEndereco = ""
-                novoTelCel = ""
-                novoEmail = ""
-                novoProfissao = ""
-            },
-            modifier = Modifier.fillMaxWidth()
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text("Add Pessoa")
+            Button(
+                onClick = {
+                    val novaPessoa = Pessoa(
+                        0,
+                        novoNome,
+                        novoDataNascimento,
+                        novoEndereco,
+                        novoTelCel,
+                        novoEmail,
+                        novoProfissao
+                    )
+                    onAddPessoa(novaPessoa)
+                    novoNome = ""
+                    novoDataNascimento = ""
+                    novoEndereco = ""
+                    novoTelCel = ""
+                    novoEmail = ""
+                    novoProfissao = ""
+                },
+                modifier = Modifier.weight(1f)
+            ) {
+                Text("Adicionar")
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+            Button(
+                onClick = onClearClick,
+                modifier = Modifier.weight(1f)
+            ) {
+                Text("Limpar")
+            }
         }
     }
 }
 
 @Composable
-fun PessoaList(pessoas: List<Pessoa>) {
+fun PessoaList(navController: NavHostController, pessoas: List<Pessoa>) {
     LazyColumn {
         items(pessoas) { pessoa ->
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(8.dp)
+                    .clickable {
+                        val pessoaJson = Json.encodeToString(pessoa)
+                        navController.navigate("pessoaDetail/$pessoaJson")
+                    }
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
+                    Text(text = pessoa.nome, style = MaterialTheme.typography.bodyMedium)
+                    Text(text = "Tel/Cel: ${pessoa.telefone}", style = MaterialTheme.typography.bodyMedium)
+                    Text(text = "Email: ${pessoa.email}", style = MaterialTheme.typography.bodyMedium)
+                    Text(text = "Profissão: ${pessoa.profissao}", style = MaterialTheme.typography.bodyMedium)
+                    Text(text = "Endereço: ${pessoa.endereco}", style = MaterialTheme.typography.bodyMedium)
                     Text(
-                        text = pessoa.nome,
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                    Text(
-                        text = "Tel/Cel: ${pessoa.telefone}",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Text(
-                        text = "Email: ${pessoa.email}",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Text(
-                        text = "Profissao: ${pessoa.profissao}",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Text(
-                        text = "Endereco: ${pessoa.endereco}",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Text(
-                        text = "Data Nascimento: ${pessoa.dataNascimento}",
+                        text = "Data de Nascimento: ${pessoa.dataNascimento}",
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }

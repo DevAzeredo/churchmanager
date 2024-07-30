@@ -46,7 +46,7 @@ kotlin {
                 implementation(libs.ktor.serialization.kotlinx.json)
                 implementation(libs.kotlinx.coroutines.core)
                 implementation(libs.navigation.compose)
-                implementation(libs.material3)
+                implementation("org.jetbrains.compose.material3:material3:1.6.11")
             }
         }
 
