@@ -104,7 +104,7 @@ fun PeoplesPage(navController: NavHostController) {
                                 pessoa.nome.contains(searchQuery, ignoreCase = true)
                             })
                         },
-                        label = { Text("Search") },
+                        label = { Text("Pesquisar") },
                         modifier = Modifier.fillMaxWidth()
                     )
                     Spacer(modifier = Modifier.height(16.dp))

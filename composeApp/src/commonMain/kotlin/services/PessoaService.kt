@@ -30,6 +30,21 @@ object PessoaService {
         }
     }
 
+    suspend fun addCursoToPessoa(pessoa: Pessoa, cursoId: Int): Result<Pessoa> {
+        return runCatching {
+            try {
+                val response = client.put("$url/${pessoa.id}/addCurso/$cursoId")
+                if (response.status == HttpStatusCode.OK) {
+                    pessoa
+                } else {
+                    throw Exception("Failed to add curso to pessoas: ${response.status}")
+                }
+            } catch (e: Exception) {
+                throw Exception("Failed to add curso to pessoas: ${e.message}")
+            }
+        }
+    }
+
     suspend fun createPessoa(pessoa: Pessoa): Pessoa {
         client.post("https://api.suaigreja.com/pessoas") {
         }

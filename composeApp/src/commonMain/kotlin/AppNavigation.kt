@@ -8,17 +8,19 @@ import androidx.navigation.navArgument
 import kotlinx.serialization.json.Json
 import models.Pessoa
 import pages.CoursesPage
-import pages.HomePage
+import pages.GroupsPage
+import pages.HomePagePreview
 import pages.PeopleDetailPage
 import pages.PeoplesPage
 
 @Composable
 fun AppNavigation(navController: NavHostController) {
     NavHost(navController = navController, startDestination = "home") {
-        composable("home") { HomePage(navController) }
+        composable("home") { HomePagePreview(navController) }
         composable("courses") { CoursesPage(navController) }
         composable("peoples") { PeoplesPage(navController) }
         composable("peopleList") { PeoplesPage(navController) }
+        composable("groups") { GroupsPage(navController) }
         composable(
             "pessoaDetail/{pessoa}",
             arguments = listOf(navArgument("pessoa") { type = NavType.StringType })

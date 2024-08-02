@@ -8,20 +8,20 @@ import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.navigation.NavHostController
-import ui.theme.primaryDarkHighContrast
 
 
 @Composable
 fun NavigationButton(title: String, navController: NavHostController) {
     var expanded by remember { mutableStateOf(false) }
     TopAppBar(
-        backgroundColor = primaryDarkHighContrast,
+        backgroundColor = MaterialTheme.colorScheme.inversePrimary,
         title = { Text(title) },
         navigationIcon = {
             IconButton(onClick = { expanded = true }) {
@@ -48,6 +48,12 @@ fun NavigationButton(title: String, navController: NavHostController) {
                     navController.navigate("peoples")
                 }) {
                     Text("Pessoas")
+                }
+                DropdownMenuItem(onClick = {
+                    expanded = false
+                    navController.navigate("groups")
+                }) {
+                    Text("Grupos")
                 }
             }
         }

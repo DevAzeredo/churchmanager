@@ -47,6 +47,7 @@ kotlin {
                 implementation(libs.kotlinx.coroutines.core)
                 implementation(libs.navigation.compose)
                 implementation("org.jetbrains.compose.material3:material3:1.6.11")
+                implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0")
             }
         }
 
