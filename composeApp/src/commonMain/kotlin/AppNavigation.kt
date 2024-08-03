@@ -6,8 +6,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import kotlinx.serialization.json.Json
+import models.Grupo
 import models.Pessoa
 import pages.CoursesPage
+import pages.GroupDetailPage
 import pages.GroupsPage
 import pages.HomePagePreview
 import pages.PeopleDetailPage
@@ -31,5 +33,16 @@ fun AppNavigation(navController: NavHostController) {
                 PeopleDetailPage(navController, it)
             }
         }
+        composable(
+            "grupoDetail/{grupo}",
+            arguments = listOf(navArgument("grupo") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val grupoJson = backStackEntry.arguments?.getString("grupo")
+            val grupo = grupoJson?.let { Json.decodeFromString<Grupo>(it) }
+            grupo?.let {
+                GroupDetailPage(navController, it)
+            }
+        }
+
     }
 }

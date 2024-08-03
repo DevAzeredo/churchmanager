@@ -1,5 +1,6 @@
 package pages
 
+import GrupoService
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -20,6 +21,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -45,148 +47,128 @@ fun GroupsPage(navController: NavHostController) {
     var searchQuery by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
     var showNotification by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        GrupoService.getGrupos()
+            .onSuccess {
+                grupos.addAll(it)
+                filteredGrupos.addAll(it)
+            }
+            .onFailure {
+                errorMessage = it.message ?: "Unknown error"
+                showNotification = true
+            }
+    }
 
-//    scope.launch {
-//        val result = GrupoService.getPequenosGrupos()
-//        grupos.addAll(result)
-//    }
-//
-//    LazyColumn {
-//        items(grupos) { pequenoGrupo ->
-//            Text(pequenoGrupo.nome)
-//        }
-//    }
-    Scaffold(
-        topBar = {
-            NavigationButton("Grupos", navController)
-        },
+    Scaffold(topBar = {
+        NavigationButton("Grupos", navController)
+    },
+
         content = {
             Surface(modifier = Modifier.fillMaxSize()) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp)
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize().padding(16.dp)
                 ) {
-                    Spacer(modifier = Modifier.height(46.dp))
-                    Button(
-                        onClick = { showForm = !showForm },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(if (showForm) "Cancelar" else "Adicionar Grupo")
+                    item { Spacer(modifier = Modifier.height(46.dp)) }
+                    item {
+                        Button(
+                            onClick = { showForm = !showForm }, modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(if (showForm) "Cancelar" else "Adicionar Grupo")
+                        }
                     }
-
                     if (showForm) {
-                        AddGroupForm(
-                            onAddGrupo = { grupo ->
-                                scope.launch {
-                                    grupos.add(grupo)
-                                    filteredGrupos.add(grupo)
-                                }
-                                showForm = false
-                            },
-                            onClearClick = {
-                                // Lógica para limpar os campos, se necessário
-                            }
-                        )
+                        item {
+                            AddGroupForm(
+                                onAddGrupo = { grupo ->
+                                    scope.launch {
+                                        GrupoService.createGrupo(grupo).onSuccess {
+                                            grupos.add(grupo)
+                                            filteredGrupos.add(grupo)
+                                        }.onFailure {
+                                            // faz nada
+                                        }
+                                    }
+                                    showForm = false
+                                },
+                            )
+                        }
                     }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-                    OutlinedTextField(
-                        value = searchQuery,
-                        onValueChange = {
+                    item { Spacer(modifier = Modifier.height(16.dp)) }
+                    item {
+                        OutlinedTextField(value = searchQuery, onValueChange = {
                             searchQuery = it
                             filteredGrupos.clear()
                             filteredGrupos.addAll(grupos.filter { pessoa ->
                                 pessoa.nome.contains(searchQuery, ignoreCase = true)
                             })
-                        },
-                        label = { Text("Pesquisar") },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    GrupoList(navController, filteredGrupos)
+                        }, label = { Text("Pesquisar") }, modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                    item { Spacer(modifier = Modifier.height(16.dp)) }
+                    items(filteredGrupos) { grupo ->
+                        Card(modifier = Modifier.fillMaxWidth().padding(8.dp).clickable {
+                                val grupoJson = Json.encodeToString(grupo)
+                                navController.navigate("grupodetail/$grupoJson")
+                            }) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Text(text = grupo.nome, style = MaterialTheme.typography.bodyMedium)
+                                Text(
+                                    text = "Descricao: ${grupo.descricao}",
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                            }
+                        }
+                    }
 
                     if (showNotification) {
-                        NotificationCard(errorMessage = errorMessage) {
-                            showNotification = false
+                        item {
+                            NotificationCard(errorMessage = errorMessage) {
+                                showNotification = false
+                            }
                         }
                     }
                 }
             }
-        }
-    )
-}
-
-@Composable
-fun GrupoList(navController: NavHostController, grupos: List<Grupo>) {
-    LazyColumn {
-        items(grupos) { grupo ->
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp)
-                    .clickable {
-                        val grupoJson = Json.encodeToString(grupo)
-                        navController.navigate("pessoaDetail/$grupoJson")
-                    }
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(text = grupo.nome, style = MaterialTheme.typography.bodyMedium)
-                    Text(
-                        text = "Descricao: ${grupo.descricao}",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-            }
-        }
-    }
+        })
 }
 
 
 @Composable
-fun AddGroupForm(onAddGrupo: (Grupo) -> Unit, onClearClick: () -> Unit) {
+fun AddGroupForm(onAddGrupo: (Grupo) -> Unit) {
     var novoNome by remember { mutableStateOf("") }
     var novaDescricao by remember { mutableStateOf("") }
     Column {
         Spacer(modifier = Modifier.height(36.dp))
-        OutlinedTextField(
-            value = novoNome,
+        OutlinedTextField(value = novoNome,
             onValueChange = { novoNome = it },
             label = { Text("Nome") },
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(8.dp))
-        OutlinedTextField(
-            value = novaDescricao,
+        OutlinedTextField(value = novaDescricao,
             onValueChange = { novaDescricao = it },
             label = { Text("Descricao") },
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(8.dp))
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
+            modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Button(
                 onClick = {
                     val novoGrupo = Grupo(
-                        0,
-                        novoNome,
-                        novaDescricao,
-                        emptyList()
+                        0, novoNome, novaDescricao
                     )
                     onAddGrupo(novoGrupo)
                     novoNome = ""
                     novaDescricao = ""
-                },
-                modifier = Modifier.weight(1f)
+                }, modifier = Modifier.weight(1f)
             ) {
                 Text("Adicionar")
             }
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(300.dp))
             Button(
-                onClick = onClearClick,
-                modifier = Modifier.weight(1f)
+                onClick = { novoNome = ""; novaDescricao = "" }, modifier = Modifier.weight(1f)
             ) {
                 Text("Limpar")
             }

@@ -33,42 +33,42 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import components.FormPessoaComponent
 import kotlinx.coroutines.launch
-import models.Curso
+import models.Grupo
 import models.Pessoa
-import services.CursoService
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PeopleDetailPage(navController: NavHostController, pessoa: Pessoa) {
-    val cursosVinculados = remember { mutableStateListOf<Curso>() }
-    val cursosDisponiveis = remember { mutableStateListOf<Curso>() }
-    val cursosFiltrados = remember { mutableStateListOf<Curso>() }
-    var searchQuery by remember { mutableStateOf("") }
+fun GroupDetailPage(
+    navController: NavHostController, grupo: Grupo
+) {
     val scope = rememberCoroutineScope()
+    var novoNome by remember { mutableStateOf(grupo.nome) }
+    var novaDescricao by remember { mutableStateOf(grupo.descricao) }
+    val pessoasVinculadas = remember { mutableStateListOf<Pessoa>() }
+    val pessoasDisponiveis = remember { mutableStateListOf<Pessoa>() }
+    val pessoasFiltradas = remember { mutableStateListOf<Pessoa>() }
+    var searchQuery by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
-        CursoService.getCursos()
-            .onSuccess {
-                cursosFiltrados.addAll(it)
-                cursosDisponiveis.addAll(it)
-            }
-            .onFailure {
-                // faz nada
-            }
-        CursoService.getCursosByPessoaId(pessoa.id).onSuccess {
-            cursosVinculados.addAll(it)
+        PessoaService.getPessoasByGrupoId(grupo.id).onSuccess {
+            pessoasVinculadas.addAll(it)
+        }.onFailure { //faz nada
         }
+        PessoaService.getPessoas()
+            .onSuccess {
+                pessoasDisponiveis.addAll(it)
+                pessoasFiltradas.addAll(it)
+            }
             .onFailure {
                 // faz nada
             }
     }
-
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Detalhes da Pessoa") },
+                title = { Text("Detalhes do Grupo") },
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Voltar")
@@ -82,73 +82,81 @@ fun PeopleDetailPage(navController: NavHostController, pessoa: Pessoa) {
                     .fillMaxSize()
                     .padding(padding)
             ) {
-
                 LazyColumn(
-                    modifier = Modifier.padding(16.dp)
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
                 ) {
                     item {
-                        FormPessoaComponent(
-                            onAddPessoa = {
-                                // Lógica para add pessoa, se necessário
-                            },
-                            onClearClick = {
-                                // Lógica para limpar os campos, se necessário
-                            }, pessoa
+                        OutlinedTextField(
+                            value = novoNome,
+                            onValueChange = { novoNome = it },
+                            label = { Text("Nome") },
+                            modifier = Modifier.fillMaxWidth()
                         )
                     }
+                    item { Spacer(modifier = Modifier.height(8.dp)) }
                     item {
-                        Spacer(modifier = Modifier.height(8.dp))
+                        OutlinedTextField(
+                            value = novaDescricao,
+                            onValueChange = { novaDescricao = it },
+                            label = { Text("Descricao") },
+                            modifier = Modifier.fillMaxWidth()
+                        )
                     }
+                    item { Spacer(modifier = Modifier.height(8.dp)) }
                     item {
                         OutlinedTextField(
                             value = searchQuery,
                             onValueChange = {
                                 searchQuery = it
-                                cursosFiltrados.clear()
-                                cursosFiltrados.addAll(cursosDisponiveis.filter { curso ->
-                                    curso.nome.contains(searchQuery, ignoreCase = true)
+                                pessoasFiltradas.clear()
+                                pessoasFiltradas.addAll(pessoasDisponiveis.filter { pessoa ->
+                                    pessoa.nome.contains(searchQuery, ignoreCase = true)
                                 })
                             },
                             label = { Text("Pesquisar") },
                             modifier = Modifier.fillMaxWidth()
                         )
                     }
-                    items(cursosFiltrados) { curso ->
+                    item { Spacer(modifier = Modifier.height(8.dp)) }
+                    items(pessoasFiltradas) { pessoa ->
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.padding(8.dp)
                         ) {
                             Checkbox(
-                                checked = cursosVinculados.contains(curso),
+                                checked = pessoasVinculadas.contains(pessoa),
                                 onCheckedChange = { isChecked ->
                                     if (isChecked) {
                                         scope.launch {
-                                            PessoaService.addCursoToPessoa(pessoa, curso.id).onSuccess {
-                                                cursosVinculados.add(curso)
-                                            }
+                                            PessoaService.addGrupoToPessoa(pessoa, grupo.id)
+                                                .onSuccess {
+                                                    pessoasVinculadas.add(pessoa)
+                                                }
                                                 .onFailure {
                                                     // faz nada
                                                 }
                                         }
                                     } else {
-                                        cursosVinculados.remove(curso)
                                         scope.launch {
-                                            PessoaService.removeCursoToPessoa(pessoa, curso.id).onSuccess {
-                                                // faz nada
-                                            }
+                                            PessoaService.removeGrupoToPessoa(pessoa, grupo.id)
+                                                .onSuccess {
+                                                    pessoasVinculadas.remove(pessoa)
+                                                }
                                                 .onFailure {
                                                     // faz nada
                                                 }
                                         }
                                     }
-                                    cursosFiltrados.sortByDescending {
-                                        cursosVinculados.contains(
+                                    pessoasFiltradas.sortByDescending {
+                                        pessoasVinculadas.contains(
                                             it
                                         )
                                     }
                                 }
                             )
-                            Text(curso.nome, style = MaterialTheme.typography.bodyMedium)
+                            Text(pessoa.nome, style = MaterialTheme.typography.bodyMedium)
                         }
                     }
                 }

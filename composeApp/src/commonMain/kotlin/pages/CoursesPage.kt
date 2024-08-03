@@ -1,6 +1,5 @@
 package pages
 
-
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,9 +10,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.DisplayMode
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -30,19 +30,21 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import components.DateInputComponent
 import components.NavigationButton
 import components.NotificationCard
 import kotlinx.coroutines.launch
-import kotlinx.datetime.LocalDate
+import kotlinx.datetime.Instant
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import models.Curso
 import services.CursoService
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CoursesPage(
     navController: NavHostController
@@ -56,14 +58,15 @@ fun CoursesPage(
     var showForm by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
     val filteredCursos = remember { mutableStateListOf<Curso>() }
-    var selectedDate by remember { mutableStateOf<LocalDate?>(null) }
+    val state = rememberDatePickerState(initialDisplayMode = DisplayMode.Input)
+    val lazyListSate = rememberLazyListState()
 
     LaunchedEffect(Unit) {
         CursoService.getCursos().onSuccess {
             cursos.addAll(it)
             filteredCursos.addAll(it)
         }.onFailure {
-            errorMessage = "o erro e: ${it.message}"?: "Unknown error"
+            errorMessage = "o erro e: ${it.message}" ?: "Unknown error"
             showNotification = true
         }
     }
@@ -74,77 +77,110 @@ fun CoursesPage(
         Surface(
             modifier = Modifier.fillMaxSize()
         ) {
-            Column(
-                modifier = Modifier.fillMaxSize().padding(8.dp)
+            LazyColumn(
+                modifier = Modifier.padding(16.dp)
             ) {
-                Spacer(modifier = Modifier.height(46.dp))
-                Button(
-                    onClick = { showForm = !showForm }, modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(if (showForm) "Cancelar" else "Adicionar Curso")
+                item { Spacer(modifier = Modifier.height(46.dp)) }
+                item {
+                    Button(
+                        onClick = { showForm = !showForm }, modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(if (showForm) "Cancelar" else "Adicionar Curso")
+                    }
                 }
 
-                if (showForm) {
-                    CourseForm(
-                        novoNome = novoNome,
-                        onNomeChange = { novoNome = it },
-                        novaDescricao = novaDescricao,
-                        onDescricaoChange = { novaDescricao = it },
-                        onAddClick = {
-                            val novoCurso = Curso(
-                                0,
-                                novoNome,
-                                novaDescricao,
-                                selectedDate?.toString() ?: "Data não selecionada"
-                            )
-                            scope.launch {
-                                CursoService.createCurso(novoCurso).onSuccess {
-                                    cursos.add(it)
-                                    filteredCursos.add(it)
-                                }.onFailure {
-                                    errorMessage = it.message ?: "Unknown error"
-                                    showNotification = true
+                item {
+                    if (showForm) {
+                        CourseForm(
+                            novoNome = novoNome,
+                            onNomeChange = { novoNome = it },
+                            novaDescricao = novaDescricao,
+                            onDescricaoChange = { novaDescricao = it },
+                            state = state,
+                            onAddClick = {
+                                val novoCurso = Curso(
+                                    0,
+                                    novoNome,
+                                    novaDescricao,
+                                    state.selectedDateMillis?.let {
+                                        val instant = Instant.fromEpochMilliseconds(it)
+                                        val dateTime =
+                                            instant.toLocalDateTime(TimeZone.currentSystemDefault())
+                                        "${
+                                            dateTime.dayOfMonth.toString().padStart(2, '0')
+                                        }-${
+                                            dateTime.monthNumber.toString().padStart(2, '0')
+                                        }-${dateTime.year}"
+                                    }!!
+                                )
+                                scope.launch {
+                                    CursoService.createCurso(novoCurso).onSuccess {
+                                        cursos.add(it)
+                                        filteredCursos.add(it)
+                                    }.onFailure {
+                                        errorMessage = it.message ?: "Unknown error"
+                                        showNotification = true
+                                    }
+                                    novoNome = ""
+                                    novaDescricao = ""
+                                    showForm = false
                                 }
+                            },
+                            onClearClick = {
                                 novoNome = ""
                                 novaDescricao = ""
-                                selectedDate = null
-                                showForm = false
                             }
+                        )
+                    }
+                }
+                item {
+                    OutlinedTextField(
+                        value = searchQuery,
+                        onValueChange = {
+                            searchQuery = it
+                            filteredCursos.clear()
+                            filteredCursos.addAll(cursos.filter { curso ->
+                                curso.nome.contains(searchQuery, ignoreCase = true)
+                            })
                         },
-                        onClearClick = {
-                            novoNome = ""
-                            novaDescricao = ""
-                        }
+                        label = { Text("Pesquisar") },
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
-                OutlinedTextField(
-                    value = searchQuery,
-                    onValueChange = {
-                        searchQuery = it
-                        filteredCursos.clear()
-                        filteredCursos.addAll(cursos.filter { curso ->
-                            curso.nome.contains(searchQuery, ignoreCase = true)
-                        })
-                    },
-                    label = { Text("Pesquisar") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                if (showNotification) {
-                    NotificationCard(errorMessage = errorMessage) {
-                        showNotification = false
+                item {
+                    if (showNotification) {
+                        NotificationCard(errorMessage = errorMessage) {
+                            showNotification = false
+                        }
                     }
                 }
                 if (cursos.isEmpty()) {
-                    Text(text = "Loading...", modifier = Modifier.padding(16.dp))
+                    item { Text(text = "Loading...", modifier = Modifier.padding(16.dp)) }
                 } else {
-                    CourseList(filteredCursos)
-                }
-                selectedDate?.let {
-                    Text(text = "Data Selecionada: $it", fontSize = 18.sp)
+                    items(cursos) { curso ->
+                        Card(
+                            modifier = Modifier.fillMaxWidth().padding(8.dp)
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Text(
+                                    text = curso.nome, style = MaterialTheme.typography.bodyMedium
+                                )
+                                Text(
+                                    text = curso.descricao,
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                                Text(
+                                    text = curso.data, style = MaterialTheme.typography.bodyMedium
+                                )
+                            }
+                        }
+
+                    }
                 }
             }
         }
-    })
+    }
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -156,6 +192,7 @@ fun CourseForm(
     onDescricaoChange: (String) -> Unit,
     onAddClick: () -> Unit,
     onClearClick: () -> Unit,
+    state: DatePickerState
 ) {
     var openDatePicker by remember { mutableStateOf(false) }
     Column(
@@ -181,7 +218,7 @@ fun CourseForm(
         ) {
             Text(text = "Selecionar Data")
         }
-        DateInputSample()
+        DateInputComponent(state)
         Spacer(modifier = Modifier.height(8.dp))
         Row(
             modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly
@@ -197,42 +234,5 @@ fun CourseForm(
                 Text("Limpar")
             }
         }
-    }
-}
-
-@Composable
-fun CourseList(cursos: List<Curso>) {
-    LazyColumn {
-        items(cursos) { curso ->
-            Card(
-                modifier = Modifier.fillMaxWidth().padding(8.dp)
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = curso.nome, style = MaterialTheme.typography.bodyMedium
-                    )
-                    Text(
-                        text = curso.descricao, style = MaterialTheme.typography.bodyMedium
-                    )
-                    Text(
-                        text = curso.data, style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-            }
-        }
-    }
-}
-
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun DateInputSample() {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        val state = rememberDatePickerState(initialDisplayMode = DisplayMode.Input)
-        DatePicker(state = state, modifier = Modifier.padding(16.dp))
-        Text(
-            "Entered date timestamp: ${state.selectedDateMillis ?: "no input"}",
-            modifier = Modifier.align(Alignment.CenterHorizontally)
-        )
     }
 }

@@ -15,6 +15,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -131,11 +134,6 @@ fun HomePage(
     })
 }
 
-val upcomingCourses = listOf(
-    Curso(1, "Curso de Teologia", "Curso sobre teologia", "2024-08-15"),
-    Curso(2, "Curso de Liderança", "Curso sobre liderança", "2024-09-01")
-)
-
 val birthdaysThisMonth = listOf(
     Pessoa(
         1, "João Silva", "1990-07-10", "Rua A, 123", "123456789", "joao@example.com", "Engenheiro"
@@ -146,9 +144,24 @@ val birthdaysThisMonth = listOf(
 
 @Composable
 fun HomePagePreview(navController: NavHostController) {
+    var pessoas = remember { mutableStateListOf<Pessoa>() }
+    LaunchedEffect(Unit) {
+        PessoaService.getPessoas().onSuccess {
+            pessoas.addAll(it)
+        }.onFailure { //faz nada
+        }
+        PessoaService.getPessoas()
+            .onSuccess {
+                pessoasDisponiveis.addAll(it)
+                pessoasFiltradas.addAll(it)
+            }
+            .onFailure {
+                // faz nada
+            }
+    }
     HomePage(
         navController = navController,
-        registeredPeopleCount = 100,
+        registeredPeopleCount = pessoas.size,
         upcomingCourses = upcomingCourses,
         birthdaysThisMonth = birthdaysThisMonth
     )
