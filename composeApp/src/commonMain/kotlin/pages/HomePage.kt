@@ -1,5 +1,6 @@
 package pages
 
+import PessoaService
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -25,8 +26,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import components.NavigationButton
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.number
+import kotlinx.datetime.toLocalDateTime
 import models.Curso
 import models.Pessoa
+import services.CursoService
 
 @Composable
 fun HomePage(
@@ -56,11 +62,8 @@ fun HomePage(
                     horizontalArrangement = Arrangement.SpaceAround
                 ) {
                     Card(
-                        modifier = Modifier
-                            .wrapContentWidth(
-                            )
-                            .padding(8.dp)
-                            .height(200.dp),
+                        modifier = Modifier.wrapContentWidth(
+                        ).padding(8.dp).height(300.dp),
                     ) {
                         Column(
                             modifier = Modifier.wrapContentWidth().padding(26.dp),
@@ -74,11 +77,8 @@ fun HomePage(
                         }
                     }
                     Card(
-                        modifier = Modifier
-                            .wrapContentWidth(
-                            )
-                            .padding(8.dp)
-                            .height(200.dp),
+                        modifier = Modifier.wrapContentWidth(
+                        ).padding(8.dp).height(300.dp),
                     ) {
                         Column(
                             modifier = Modifier.wrapContentWidth().padding(26.dp),
@@ -101,10 +101,8 @@ fun HomePage(
                         }
                     }
                     Card(
-                        modifier = Modifier
-                            .wrapContentWidth(
-                            )
-                            .padding(8.dp).height(200.dp),
+                        modifier = Modifier.wrapContentWidth(
+                        ).padding(8.dp).height(300.dp),
                     ) {
                         Column(
                             modifier = Modifier.wrapContentWidth().padding(26.dp)
@@ -134,35 +132,34 @@ fun HomePage(
     })
 }
 
-val birthdaysThisMonth = listOf(
-    Pessoa(
-        1, "João Silva", "1990-07-10", "Rua A, 123", "123456789", "joao@example.com", "Engenheiro"
-    ), Pessoa(
-        2, "Maria Souza", "1985-07-22", "Rua B, 456", "987654321", "maria@example.com", "Professora"
-    )
-)
 
 @Composable
 fun HomePagePreview(navController: NavHostController) {
-    var pessoas = remember { mutableStateListOf<Pessoa>() }
+    val pessoas = remember { mutableStateListOf<Pessoa>() }
+    val aniversariantes = remember { mutableStateListOf<Pessoa>() }
+    val proximosCursos = remember { mutableStateListOf<Curso>() }
+
     LaunchedEffect(Unit) {
         PessoaService.getPessoas().onSuccess {
             pessoas.addAll(it)
         }.onFailure { //faz nada
         }
-        PessoaService.getPessoas()
-            .onSuccess {
-                pessoasDisponiveis.addAll(it)
-                pessoasFiltradas.addAll(it)
-            }
-            .onFailure {
-                // faz nada
-            }
+        CursoService.proximosCursos(5).onSuccess {
+            proximosCursos.addAll(it)
+        }.onFailure { //faz nada
+        }
+        val mesAtual =
+            Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).month.number
+        PessoaService.getAniversariantesDoMe(mesAtual).onSuccess {
+            aniversariantes.addAll(it)
+        }.onFailure {
+            // faz nada
+        }
     }
     HomePage(
         navController = navController,
         registeredPeopleCount = pessoas.size,
-        upcomingCourses = upcomingCourses,
-        birthdaysThisMonth = birthdaysThisMonth
+        upcomingCourses = proximosCursos,
+        birthdaysThisMonth = aniversariantes
     )
 }

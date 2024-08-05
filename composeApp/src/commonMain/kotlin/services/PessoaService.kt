@@ -1,4 +1,3 @@
-
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.post
@@ -32,7 +31,22 @@ object PessoaService {
         }
     }
 
-    suspend fun getPessoasByGrupoId(pessoaId:Int): Result<List<Pessoa>> {
+    suspend fun getAniversariantesDoMe(mes: Int): Result<List<Pessoa>> {
+        return runCatching {
+            try {
+                val response = client.get("$url/aniversariantes?mes=$mes")
+                if (response.status == HttpStatusCode.OK) {
+                    response.body<List<Pessoa>>()
+                } else {
+                    throw Exception("Failed to fetch pessoas: ${response.status}")
+                }
+            } catch (e: Exception) {
+                throw Exception("Failed to fetch pessoas: ${e.message}")
+            }
+        }
+    }
+
+    suspend fun getPessoasByGrupoId(pessoaId: Int): Result<List<Pessoa>> {
         return runCatching {
             try {
                 val response = client.get("$url?grupoId=$pessoaId")

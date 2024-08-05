@@ -212,12 +212,6 @@ fun CourseForm(
         )
         Spacer(modifier = Modifier.height(8.dp))
 
-        Button(
-            onClick = { openDatePicker = true },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(text = "Selecionar Data")
-        }
         DateInputComponent(state)
         Spacer(modifier = Modifier.height(8.dp))
         Row(
